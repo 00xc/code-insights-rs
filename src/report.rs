@@ -233,6 +233,48 @@ impl<'a> Report<'a> {
 }
 
 #[cfg(test)]
+mod field_validation {
+    use super::*;
+
+    #[test]
+    fn title() {
+        let invalid_title = "X".repeat(TITLE_LIMIT + 1);
+        assert!(Report::new(&invalid_title).to_value().is_err());
+    }
+
+    #[test]
+    fn details() {
+        let invalid_detail = "X".repeat(DETAILS_LIMIT + 1);
+        assert!(Report::new("Title")
+            .details(&invalid_detail)
+            .to_value()
+            .is_err());
+    }
+
+    #[test]
+    fn reporter() {
+        let invalid_reporter = "X".repeat(REPORTER_LIMIT + 1);
+        assert!(Report::new("Title")
+            .reporter(&invalid_reporter)
+            .to_value()
+            .is_err());
+    }
+
+    #[test]
+    fn data() {
+        let mut data = Vec::new();
+
+        for _ in 0..=DATA_LIMIT {
+            data.push(Data {
+                title: "Title",
+                parameter: Parameter::Boolean(true),
+            });
+        }
+        assert!(Report::new("Title").data(data).to_value().is_err());
+    }
+}
+
+#[cfg(test)]
 mod parameter_serialization {
     use super::*;
     use serde_json::json;
