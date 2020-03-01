@@ -22,12 +22,31 @@ pub struct Data<'a> {
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Parameter<'a> {
+    /// The value will be displayed as 'Yes' or 'No'.
     Boolean(bool),
+
+    /// The value is in the form of a Unix timestamp (milliseconds) and will be
+    /// displayed as a relative date if the date is less than one week ago,
+    /// otherwise as an absolute date.
     Date(u64),
+
+    /// The value is a duration in milliseconds and will be displayed in a
+    /// human readable duration format.
     Duration(u64),
+
+    /// The value will be displayed as a clickable link with the text
+    /// `linktext`.
     Link { linktext: &'a str, href: &'a str },
+
+    /// The value is a JSON number and large numbers will be displayed in a
+    /// human readable format (e.g. 14.3k).
     Number(Number),
+
+    /// The value is a number between 0 and 100 and will be displayed with a
+    /// percentage sign.
     Percentage(u8),
+
+    /// The value is text that will be displayed as-is.
     Text(&'a str),
 }
 
