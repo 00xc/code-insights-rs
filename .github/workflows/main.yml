@@ -1,0 +1,35 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build: [stable, beta, nightly]
+        include:
+          - build: stable
+            os: ubuntu-latest
+            rust: stable
+          - build: beta
+            os: ubuntu-latest
+            rust: beta
+          - build: nightly
+            os: ubuntu-latest
+            rust: nightly
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Rust (rustup)
+      run: rustup update ${{ matrix.rust }} --no-self-update && rustup default ${{ matrix.rust }}
+      shell: bash
+    - run: cargo test
+
+  rustfmt:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Rust
+      run: rustup update stable && rustup default stable && rustup component add rustfmt
+    - run: cargo fmt -- --check
