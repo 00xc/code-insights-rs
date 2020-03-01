@@ -3,6 +3,10 @@ name = "code_insights"
 version = "0.1.0"
 authors = ["Fredrik Larsson <nossralf@gmail.com>"]
 edition = "2018"
+license = "MIT"
+
+[badges]
+maintenance = { status = "actively-developed" }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
