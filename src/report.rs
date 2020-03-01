@@ -1,5 +1,12 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{Number, Result, Value};
+use serde_json::{Number, Value};
+
+use crate::error::{Error, Result};
+
+const TITLE_LIMIT: usize = 450;
+const DETAILS_LIMIT: usize = 2000;
+const DATA_LIMIT: usize = 6;
+const REPORTER_LIMIT: usize = 450;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "UPPERCASE")]
@@ -171,12 +178,57 @@ impl<'a> Report<'a> {
 
     /// Serialize the report to a JSON `String`.
     pub fn to_string(&'a self) -> Result<String> {
-        serde_json::to_string(self)
+        self.validate_fields()?;
+        serde_json::to_string(self).map_err(Error::SerdeError)
     }
 
     /// Serialize the report to a `serde_json::Value`.
     pub fn to_value(&'a self) -> Result<Value> {
-        serde_json::to_value(self)
+        self.validate_fields()?;
+        serde_json::to_value(self).map_err(Error::SerdeError)
+    }
+
+    /// Validate fields that have limits imposed on them by Bitbucket.
+    fn validate_fields(&'a self) -> Result<()> {
+        let len = self.title.len();
+        if len > TITLE_LIMIT {
+            return Err(Error::FieldTooLong {
+                name: "title".to_owned(),
+                len,
+                limit: TITLE_LIMIT,
+            });
+        }
+        if let Some(details) = self.details {
+            let len = details.len();
+            if len > DETAILS_LIMIT {
+                return Err(Error::FieldTooLong {
+                    name: "details".to_owned(),
+                    len,
+                    limit: DETAILS_LIMIT,
+                });
+            }
+        }
+        if let Some(data) = &self.data {
+            let len = data.len();
+            if len > DATA_LIMIT {
+                return Err(Error::FieldTooLong {
+                    name: "data".to_owned(),
+                    len,
+                    limit: DATA_LIMIT,
+                });
+            }
+        }
+        if let Some(reporter) = self.reporter {
+            let len = reporter.len();
+            if len > REPORTER_LIMIT {
+                return Err(Error::FieldTooLong {
+                    name: "reporter".to_owned(),
+                    len,
+                    limit: REPORTER_LIMIT,
+                });
+            }
+        }
+        Ok(())
     }
 }
 
