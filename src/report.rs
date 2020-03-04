@@ -190,24 +190,10 @@ impl<'a> Report<'a> {
 
     /// Validate fields that have limits imposed on them by Bitbucket.
     fn validate_fields(&'a self) -> Result<()> {
-        let len = self.title.len();
-        if len > TITLE_LIMIT {
-            return Err(Error::FieldTooLong {
-                name: "title".to_owned(),
-                len,
-                limit: TITLE_LIMIT,
-            });
-        }
-        if let Some(details) = self.details {
-            let len = details.len();
-            if len > DETAILS_LIMIT {
-                return Err(Error::FieldTooLong {
-                    name: "details".to_owned(),
-                    len,
-                    limit: DETAILS_LIMIT,
-                });
-            }
-        }
+        validate_field!(self, title, TITLE_LIMIT);
+        validate_optional_field!(self, details, DETAILS_LIMIT);
+        validate_optional_field!(self, reporter, REPORTER_LIMIT);
+
         if let Some(data) = &self.data {
             let len = data.len();
             if len > DATA_LIMIT {
@@ -215,16 +201,6 @@ impl<'a> Report<'a> {
                     name: "data".to_owned(),
                     len,
                     limit: DATA_LIMIT,
-                });
-            }
-        }
-        if let Some(reporter) = self.reporter {
-            let len = reporter.len();
-            if len > REPORTER_LIMIT {
-                return Err(Error::FieldTooLong {
-                    name: "reporter".to_owned(),
-                    len,
-                    limit: REPORTER_LIMIT,
                 });
             }
         }

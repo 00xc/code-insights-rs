@@ -143,24 +143,8 @@ impl<'a> Annotation<'a> {
 
     /// Validate fields that have limits imposed on them by Bitbucket.
     fn validate_fields(&'a self) -> Result<()> {
-        let len = self.message.len();
-        if len > MESSAGE_LIMIT {
-            return Err(Error::FieldTooLong {
-                name: "message".to_owned(),
-                len,
-                limit: MESSAGE_LIMIT,
-            });
-        }
-        if let Some(external_id) = self.external_id {
-            let len = external_id.len();
-            if len > EXTERNAL_ID_LIMIT {
-                return Err(Error::FieldTooLong {
-                    name: "external_id".to_owned(),
-                    len,
-                    limit: EXTERNAL_ID_LIMIT,
-                });
-            }
-        }
+        validate_field!(self, message, MESSAGE_LIMIT);
+        validate_optional_field!(self, external_id, EXTERNAL_ID_LIMIT);
         Ok(())
     }
 }
