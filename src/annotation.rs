@@ -183,6 +183,6 @@ mod field_validataion {
         assert!(Annotation::new("Message", Severity::Low)
             .external_id(&invalid_external_id)
             .to_value()
-            .is_err(),);
+            .is_err());
     }
 }
