@@ -28,6 +28,16 @@ pub enum Type {
     Bug,
 }
 
+/// A struct that represents a Code Insights annotation. Annotations enable
+/// Bitbucket Server integrations to highlight specific lines to display data
+/// from the result of an analysis.
+///
+/// It is assumed that reporters will do an analysis on the source branch of a
+/// pull request, and as such might find issues on lines and files that aren't
+/// changed by the pull request author. Because of this, only annotations that
+/// are on lines that have been changed in a pull request are displayed.
+/// Annotations can also be created on line 0 which will be displayed as a file
+/// level annotation on any file that has been modified.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Annotation<'a> {

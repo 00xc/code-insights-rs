@@ -57,8 +57,12 @@ pub enum Parameter<'a> {
     Text(&'a str),
 }
 
-/// A struct that represents a Bitbucket Server [Code Insights](https://confluence.atlassian.com/bitbucketserver/code-insights-966660485.html)
-/// report.
+/// A struct that represents a Bitbucket Server Code Insights report.
+///
+/// Reports enable Bitbucket Server integrations to give a high-level overview
+/// of the results of the analysis and display data that is not specific to any
+/// given file. A report must be created before any annotations are able to be
+/// created as annotations must be associated with an existing report.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Report<'a> {
