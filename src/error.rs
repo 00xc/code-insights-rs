@@ -1,5 +1,7 @@
 use std::fmt;
 
+/// Provides descriptive errors when the serialization of a `Report` or
+/// `Annotation` fails.
 #[derive(Debug)]
 pub enum Error {
     FieldTooLong {
@@ -10,6 +12,9 @@ pub enum Error {
     SerdeError(serde_json::Error),
 }
 
+/// Shorthand for [`Result`] type.
+///
+/// [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html
 pub type Result<T> = std::result::Result<T, Error>;
 
 impl fmt::Display for Error {

@@ -8,6 +8,7 @@ const DETAILS_LIMIT: usize = 2000;
 const DATA_LIMIT: usize = 6;
 const REPORTER_LIMIT: usize = 450;
 
+/// Indicates whether a `Report` is in a passed or failed state.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum ReportResult {
@@ -15,16 +16,22 @@ pub enum ReportResult {
     Fail,
 }
 
+/// Used to represent a data field in a `Report`.
+///
+/// A data field contains information that will be displayed in the Code
+/// Insights report summary in Bitbucket Server..
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Data<'a> {
     /// A string describing what this data field represents.
     title: &'a str,
 
+    /// The value of the data field.
     #[serde(flatten)]
     #[serde(borrow)]
     parameter: Parameter<'a>,
 }
 
+/// Describes the value for a `Data` field in a `Report`.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "UPPERCASE")]
@@ -57,7 +64,7 @@ pub enum Parameter<'a> {
     Text(&'a str),
 }
 
-/// A struct that represents a Bitbucket Server Code Insights report.
+/// Represents a Bitbucket Server Code Insights report.
 ///
 /// Reports enable Bitbucket Server integrations to give a high-level overview
 /// of the results of the analysis and display data that is not specific to any
@@ -162,7 +169,7 @@ impl<'a> Report<'a> {
         self
     }
 
-    /// Set the report's link.
+    /// Sets the report's link.
     ///
     /// The `link` is a URL linking to the results of the report in an external
     /// tool.
@@ -171,7 +178,7 @@ impl<'a> Report<'a> {
         self
     }
 
-    /// Set the report's logo URL.
+    /// Sets the report's logo URL.
     ///
     /// The report logo will be displayed by Bitbucket when the report is
     /// presented to the user. It is recommended to use an SVG logo.
@@ -180,19 +187,19 @@ impl<'a> Report<'a> {
         self
     }
 
-    /// Serialize the report to a JSON `String`.
+    /// Serializes the report to a JSON `String`.
     pub fn to_string(&'a self) -> Result<String> {
         self.validate_fields()?;
         serde_json::to_string(self).map_err(Error::SerdeError)
     }
 
-    /// Serialize the report to a `serde_json::Value`.
+    /// Serializes the report to a `serde_json::Value`.
     pub fn to_value(&'a self) -> Result<Value> {
         self.validate_fields()?;
         serde_json::to_value(self).map_err(Error::SerdeError)
     }
 
-    /// Validate fields that have limits imposed on them by Bitbucket.
+    /// Validates fields that have limits imposed on them by Bitbucket.
     fn validate_fields(&'a self) -> Result<()> {
         validate_field!(self, title, TITLE_LIMIT);
         validate_optional_field!(self, details, DETAILS_LIMIT);
