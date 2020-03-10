@@ -112,7 +112,7 @@ impl<'a> Report<'a> {
     /// The maximum length of `title` is 450 characters. This is a Bitbucket
     /// limitation. It is recommended to use a short title for display purposes
     /// in Bitbucket.
-    pub fn new(title: &'a str) -> Report<'a> {
+    pub fn new(title: &'a str) -> Self {
         Report {
             title,
             details: None,
@@ -132,14 +132,14 @@ impl<'a> Report<'a> {
     ///
     /// The maximum length of `details` is 2000 characters. This is a Bitbucket
     /// limitation.
-    pub fn details(&'a mut self, details: &'a str) -> &'a mut Report {
+    pub fn details(&'a mut self, details: &'a str) -> &'a mut Self {
         self.details = Some(details);
         self
     }
 
     /// Sets the result of the `Report` which indicates whether the report is
     /// in a passed or failed state.
-    pub fn result(&'a mut self, result: ReportResult) -> &'a mut Report {
+    pub fn result(&'a mut self, result: ReportResult) -> &'a mut Self {
         self.result = Some(result);
         self
     }
@@ -152,7 +152,7 @@ impl<'a> Report<'a> {
     ///
     /// A maximum of 6 `data` fields are allowed. This is a Bitbucket
     /// limitation.
-    pub fn data(&'a mut self, data: Vec<Data<'a>>) -> &'a mut Report {
+    pub fn data(&'a mut self, data: Vec<Data<'a>>) -> &'a mut Self {
         self.data = Some(data);
         self
     }
@@ -164,7 +164,7 @@ impl<'a> Report<'a> {
     ///
     /// The maximum length of `reporter` is 450 characters. This is a Bitbucket
     /// limitation.
-    pub fn reporter(&'a mut self, reporter: &'a str) -> &'a mut Report {
+    pub fn reporter(&'a mut self, reporter: &'a str) -> &'a mut Self {
         self.reporter = Some(reporter);
         self
     }
@@ -173,7 +173,7 @@ impl<'a> Report<'a> {
     ///
     /// The `link` is a URL linking to the results of the report in an external
     /// tool.
-    pub fn link(&'a mut self, link: &'a str) -> &'a mut Report {
+    pub fn link(&'a mut self, link: &'a str) -> &'a mut Self {
         self.link = Some(link);
         self
     }
@@ -182,7 +182,7 @@ impl<'a> Report<'a> {
     ///
     /// The report logo will be displayed by Bitbucket when the report is
     /// presented to the user. It is recommended to use an SVG logo.
-    pub fn logo_url(&'a mut self, logo_url: &'a str) -> &'a mut Report {
+    pub fn logo_url(&'a mut self, logo_url: &'a str) -> &'a mut Self {
         self.logo_url = Some(logo_url);
         self
     }

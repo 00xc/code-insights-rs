@@ -94,7 +94,7 @@ impl<'a> Annotation<'a> {
     ///
     /// The maximum length of `message` is 2000 characters. This is a Bitbucket
     /// limitation.
-    pub fn new(message: &'a str, severity: Severity) -> Annotation<'a> {
+    pub fn new(message: &'a str, severity: Severity) -> Self {
         Annotation {
             message,
             severity,
@@ -107,7 +107,7 @@ impl<'a> Annotation<'a> {
     }
 
     /// Sets the annotation type.
-    pub fn annotation_type(&'a mut self, annotation_type: Type) -> &'a mut Annotation {
+    pub fn annotation_type(&'a mut self, annotation_type: Type) -> &'a mut Self {
         self.annotation_type = Some(annotation_type);
         self
     }
@@ -118,7 +118,7 @@ impl<'a> Annotation<'a> {
     /// repository. If no path is provided, then it will appear in the overview
     /// modal on all pull requests where the tip of the branch is the given
     /// commit, regardless of which files were modified.
-    pub fn path(&'a mut self, path: &'a str) -> &'a mut Annotation {
+    pub fn path(&'a mut self, path: &'a str) -> &'a mut Self {
         self.path = Some(path);
         self
     }
@@ -127,7 +127,7 @@ impl<'a> Annotation<'a> {
     ///
     /// If no line is set, the annotation will displayed as an annotation that
     /// applies to the whole file.
-    pub fn line(&'a mut self, line: u32) -> &'a mut Annotation {
+    pub fn line(&'a mut self, line: u32) -> &'a mut Self {
         self.line = Some(line);
         self
     }
@@ -135,7 +135,7 @@ impl<'a> Annotation<'a> {
     /// Sets the annotation's link.
     ///
     /// The link is the location of the annotation in an external tool.
-    pub fn link(&'a mut self, link: &'a str) -> &'a mut Annotation {
+    pub fn link(&'a mut self, link: &'a str) -> &'a mut Self {
         self.link = Some(link);
         self
     }
@@ -146,7 +146,7 @@ impl<'a> Annotation<'a> {
     /// annotation, then an ID must be provided. It is not used or required by
     /// Bitbucket, but only by the annotation creator for updating or deleting
     /// this specific annotation.
-    pub fn external_id(&'a mut self, external_id: &'a str) -> &'a mut Annotation {
+    pub fn external_id(&'a mut self, external_id: &'a str) -> &'a mut Self {
         self.external_id = Some(external_id);
         self
     }
