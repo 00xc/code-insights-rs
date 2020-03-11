@@ -21,21 +21,20 @@ pub enum ReportResult {
 /// A data field contains information that will be displayed in the Code
 /// Insights report summary in Bitbucket Server..
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Data<'a> {
+pub struct Data {
     /// A string describing what this data field represents.
-    title: &'a str,
+    title: String,
 
     /// The value of the data field.
     #[serde(flatten)]
-    #[serde(borrow)]
-    parameter: Parameter<'a>,
+    parameter: Parameter,
 }
 
 /// Describes the value for a `Data` field in a `Report`.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "UPPERCASE")]
-pub enum Parameter<'a> {
+pub enum Parameter {
     /// The value will be displayed as 'Yes' or 'No'.
     Boolean(bool),
 
@@ -50,7 +49,7 @@ pub enum Parameter<'a> {
 
     /// The value will be displayed as a clickable link with the text
     /// `linktext`.
-    Link { linktext: &'a str, href: &'a str },
+    Link { linktext: String, href: String },
 
     /// The value is a JSON number and large numbers will be displayed in a
     /// human readable format (e.g. 14.3k).
@@ -61,7 +60,7 @@ pub enum Parameter<'a> {
     Percentage(u8),
 
     /// The value is text that will be displayed as-is.
-    Text(&'a str),
+    Text(String),
 }
 
 /// Represents a Bitbucket Server Code Insights report.
@@ -72,15 +71,15 @@ pub enum Parameter<'a> {
 /// created as annotations must be associated with an existing report.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct Report<'a> {
+pub struct Report {
     /// A short string representing the name of the report.
-    title: &'a str,
+    title: String,
 
     /// A string to describe the purpose of the report. This string may contain
     /// escaped newlines and if it does it will display the content
     /// accordingly.
     #[serde(skip_serializing_if = "Option::is_none")]
-    details: Option<&'a str>,
+    details: Option<String>,
 
     /// Indicates whether the report is in a passed or failed state.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -89,32 +88,74 @@ pub struct Report<'a> {
     /// An array of data fields (described below) to display information on the
     /// report.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(borrow)]
-    data: Option<Vec<Data<'a>>>,
+    data: Option<Vec<Data>>,
 
     /// A string to describe the tool or company who created the report.
     #[serde(skip_serializing_if = "Option::is_none")]
-    reporter: Option<&'a str>,
+    reporter: Option<String>,
 
     /// A URL linking to the results of the report in an external tool.
     #[serde(skip_serializing_if = "Option::is_none")]
-    link: Option<&'a str>,
+    link: Option<String>,
 
     /// A URL to the report logo. If none is provided, the default insights
     /// logo will be used.
     #[serde(skip_serializing_if = "Option::is_none")]
-    logo_url: Option<&'a str>,
+    logo_url: Option<String>,
 }
 
-impl<'a> Report<'a> {
+impl Report {
+    /// Serializes the report to a JSON `String`.
+    pub fn to_string(&self) -> Result<String> {
+        self.validate_fields()?;
+        serde_json::to_string(self).map_err(Error::SerdeError)
+    }
+
+    /// Serializes the report to a `serde_json::Value`.
+    pub fn to_value(&self) -> Result<Value> {
+        self.validate_fields()?;
+        serde_json::to_value(self).map_err(Error::SerdeError)
+    }
+
+    /// Validates fields that have limits imposed on them by Bitbucket.
+    fn validate_fields(&self) -> Result<()> {
+        validate_field!(self, title, TITLE_LIMIT);
+        validate_optional_field!(self, details, DETAILS_LIMIT);
+        validate_optional_field!(self, reporter, REPORTER_LIMIT);
+
+        if let Some(data) = &self.data {
+            let len = data.len();
+            if len > DATA_LIMIT {
+                return Err(Error::FieldTooLong {
+                    name: "data".to_owned(),
+                    len,
+                    limit: DATA_LIMIT,
+                });
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ReportBuilder {
+    title: String,
+    details: Option<String>,
+    result: Option<ReportResult>,
+    data: Option<Vec<Data>>,
+    reporter: Option<String>,
+    link: Option<String>,
+    logo_url: Option<String>,
+}
+
+impl ReportBuilder {
     /// Constructs a new Code Insights `Report` with the title `title`.
     ///
     /// The maximum length of `title` is 450 characters. This is a Bitbucket
     /// limitation. It is recommended to use a short title for display purposes
     /// in Bitbucket.
-    pub fn new(title: &'a str) -> Self {
-        Report {
-            title,
+    pub fn new<T: Into<String>>(title: T) -> Self {
+        ReportBuilder {
+            title: title.into(),
             details: None,
             result: None,
             data: None,
@@ -132,14 +173,14 @@ impl<'a> Report<'a> {
     ///
     /// The maximum length of `details` is 2000 characters. This is a Bitbucket
     /// limitation.
-    pub fn details(&'a mut self, details: &'a str) -> &'a mut Self {
-        self.details = Some(details);
+    pub fn details<T: Into<String>>(mut self, details: T) -> Self {
+        self.details = Some(details.into());
         self
     }
 
     /// Sets the result of the `Report` which indicates whether the report is
     /// in a passed or failed state.
-    pub fn result(&'a mut self, result: ReportResult) -> &'a mut Self {
+    pub fn result(mut self, result: ReportResult) -> Self {
         self.result = Some(result);
         self
     }
@@ -152,7 +193,7 @@ impl<'a> Report<'a> {
     ///
     /// A maximum of 6 `data` fields are allowed. This is a Bitbucket
     /// limitation.
-    pub fn data(&'a mut self, data: Vec<Data<'a>>) -> &'a mut Self {
+    pub fn data(mut self, data: Vec<Data>) -> Self {
         self.data = Some(data);
         self
     }
@@ -164,8 +205,8 @@ impl<'a> Report<'a> {
     ///
     /// The maximum length of `reporter` is 450 characters. This is a Bitbucket
     /// limitation.
-    pub fn reporter(&'a mut self, reporter: &'a str) -> &'a mut Self {
-        self.reporter = Some(reporter);
+    pub fn reporter<T: Into<String>>(mut self, reporter: T) -> Self {
+        self.reporter = Some(reporter.into());
         self
     }
 
@@ -173,8 +214,8 @@ impl<'a> Report<'a> {
     ///
     /// The `link` is a URL linking to the results of the report in an external
     /// tool.
-    pub fn link(&'a mut self, link: &'a str) -> &'a mut Self {
-        self.link = Some(link);
+    pub fn link<T: Into<String>>(mut self, link: T) -> Self {
+        self.link = Some(link.into());
         self
     }
 
@@ -182,25 +223,36 @@ impl<'a> Report<'a> {
     ///
     /// The report logo will be displayed by Bitbucket when the report is
     /// presented to the user. It is recommended to use an SVG logo.
-    pub fn logo_url(&'a mut self, logo_url: &'a str) -> &'a mut Self {
-        self.logo_url = Some(logo_url);
+    pub fn logo_url<T: Into<String>>(mut self, logo_url: T) -> Self {
+        self.logo_url = Some(logo_url.into());
         self
     }
 
-    /// Serializes the report to a JSON `String`.
-    pub fn to_string(&'a self) -> Result<String> {
+    pub fn build(self) -> Result<Report> {
         self.validate_fields()?;
-        serde_json::to_string(self).map_err(Error::SerdeError)
-    }
+        let ReportBuilder {
+            title,
+            details,
+            result,
+            data,
+            reporter,
+            link,
+            logo_url,
+        } = self;
 
-    /// Serializes the report to a `serde_json::Value`.
-    pub fn to_value(&'a self) -> Result<Value> {
-        self.validate_fields()?;
-        serde_json::to_value(self).map_err(Error::SerdeError)
+        Ok(Report {
+            title,
+            details,
+            result,
+            data,
+            reporter,
+            link,
+            logo_url,
+        })
     }
 
     /// Validates fields that have limits imposed on them by Bitbucket.
-    fn validate_fields(&'a self) -> Result<()> {
+    fn validate_fields(&self) -> Result<()> {
         validate_field!(self, title, TITLE_LIMIT);
         validate_optional_field!(self, details, DETAILS_LIMIT);
         validate_optional_field!(self, reporter, REPORTER_LIMIT);
@@ -226,24 +278,24 @@ mod field_validation {
     #[test]
     fn title() {
         let invalid_title = "X".repeat(TITLE_LIMIT + 1);
-        assert!(Report::new(&invalid_title).to_value().is_err());
+        assert!(ReportBuilder::new(&invalid_title).build().is_err());
     }
 
     #[test]
     fn details() {
         let invalid_detail = "X".repeat(DETAILS_LIMIT + 1);
-        assert!(Report::new("Title")
+        assert!(ReportBuilder::new("Title")
             .details(&invalid_detail)
-            .to_value()
+            .build()
             .is_err());
     }
 
     #[test]
     fn reporter() {
         let invalid_reporter = "X".repeat(REPORTER_LIMIT + 1);
-        assert!(Report::new("Title")
+        assert!(ReportBuilder::new("Title")
             .reporter(&invalid_reporter)
-            .to_value()
+            .build()
             .is_err());
     }
 
@@ -253,11 +305,11 @@ mod field_validation {
 
         for _ in 0..=DATA_LIMIT {
             data.push(Data {
-                title: "Title",
+                title: "Title".to_owned(),
                 parameter: Parameter::Boolean(true),
             });
         }
-        assert!(Report::new("Title").data(data).to_value().is_err());
+        assert!(ReportBuilder::new("Title").data(data).build().is_err());
     }
 }
 
@@ -291,8 +343,8 @@ mod parameter_serialization {
     fn link() {
         let expected = json!({"type": "LINK", "value": {"linktext": "Link text", "href": "https://link.test"}});
         let actual = serde_json::to_value(Parameter::Link {
-            linktext: "Link text",
-            href: "https://link.test",
+            linktext: "Link text".to_owned(),
+            href: "https://link.test".to_owned(),
         })
         .unwrap();
         assert_eq!(expected, actual);
@@ -315,7 +367,7 @@ mod parameter_serialization {
     #[test]
     fn text() {
         let expected = json!({"type": "TEXT", "value": "Some string"});
-        let actual = serde_json::to_value(Parameter::Text("Some string")).unwrap();
+        let actual = serde_json::to_value(Parameter::Text("Some string".to_owned())).unwrap();
         assert_eq!(expected, actual);
     }
 }

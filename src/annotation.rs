@@ -15,9 +15,8 @@ const EXTERNAL_ID_LIMIT: usize = 450;
 /// This is the struct that should be serialized and POST:ed to Bitbucket
 /// Server's annotations endpoint.
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Annotations<'a> {
-    #[serde(borrow)]
-    annotations: Vec<Annotation<'a>>,
+pub struct Annotations {
+    annotations: Vec<Annotation>,
 }
 
 /// Represents the severity of an `Annotation`.
@@ -50,9 +49,9 @@ pub enum Type {
 /// level annotation on any file that has been modified.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct Annotation<'a> {
+pub struct Annotation {
     /// The message to display to users.
-    message: &'a str,
+    message: String,
 
     /// The severity of the annotation.
     severity: Severity,
@@ -68,7 +67,7 @@ pub struct Annotation<'a> {
     /// requests where the tip of the branch is the given commit, regardless of
     /// which files were modified.
     #[serde(skip_serializing_if = "Option::is_none")]
-    path: Option<&'a str>,
+    path: Option<String>,
 
     /// The line number that the annotation should belong to. If no line number
     /// is provided, then it will default to 0 and in a pull request it will
@@ -79,24 +78,55 @@ pub struct Annotation<'a> {
     /// An http or https URL representing the location of the annotation in the
     /// external tool.
     #[serde(skip_serializing_if = "Option::is_none")]
-    link: Option<&'a str>,
+    link: Option<String>,
 
     /// If the caller requires a link to get or modify this annotation, then an
     /// ID must be provided. It is not used or required by Bitbucket, but only
     /// by the annotation creator for updating or deleting this specific
     /// annotation.
     #[serde(skip_serializing_if = "Option::is_none")]
-    external_id: Option<&'a str>,
+    external_id: Option<String>,
 }
 
-impl<'a> Annotation<'a> {
+impl Annotation {
+    /// Serializes the annotation to a JSON `String`.
+    pub fn to_string(&self) -> Result<String> {
+        self.validate_fields()?;
+        serde_json::to_string(self).map_err(Error::SerdeError)
+    }
+
+    /// Serializes the annotation to a `serde_json::Value`.
+    pub fn to_value(&self) -> Result<Value> {
+        self.validate_fields()?;
+        serde_json::to_value(self).map_err(Error::SerdeError)
+    }
+
+    /// Validates fields that have limits imposed on them by Bitbucket.
+    fn validate_fields(&self) -> Result<()> {
+        validate_field!(self, message, MESSAGE_LIMIT);
+        validate_optional_field!(self, external_id, EXTERNAL_ID_LIMIT);
+        Ok(())
+    }
+}
+
+pub struct AnnotationBuilder {
+    message: String,
+    severity: Severity,
+    annotation_type: Option<Type>,
+    path: Option<String>,
+    line: Option<u32>,
+    link: Option<String>,
+    external_id: Option<String>,
+}
+
+impl AnnotationBuilder {
     /// Constructs a new Code Insights `Annotation` with a message and severity.
     ///
     /// The maximum length of `message` is 2000 characters. This is a Bitbucket
     /// limitation.
-    pub fn new(message: &'a str, severity: Severity) -> Self {
-        Annotation {
-            message,
+    pub fn new<T: Into<String>>(message: T, severity: Severity) -> Self {
+        AnnotationBuilder {
+            message: message.into(),
             severity,
             annotation_type: None,
             path: None,
@@ -107,7 +137,7 @@ impl<'a> Annotation<'a> {
     }
 
     /// Sets the annotation type.
-    pub fn annotation_type(&'a mut self, annotation_type: Type) -> &'a mut Self {
+    pub fn annotation_type(mut self, annotation_type: Type) -> Self {
         self.annotation_type = Some(annotation_type);
         self
     }
@@ -118,8 +148,8 @@ impl<'a> Annotation<'a> {
     /// repository. If no path is provided, then it will appear in the overview
     /// modal on all pull requests where the tip of the branch is the given
     /// commit, regardless of which files were modified.
-    pub fn path(&'a mut self, path: &'a str) -> &'a mut Self {
-        self.path = Some(path);
+    pub fn path<T: Into<String>>(mut self, path: T) -> Self {
+        self.path = Some(path.into());
         self
     }
 
@@ -127,7 +157,7 @@ impl<'a> Annotation<'a> {
     ///
     /// If no line is set, the annotation will displayed as an annotation that
     /// applies to the whole file.
-    pub fn line(&'a mut self, line: u32) -> &'a mut Self {
+    pub fn line(mut self, line: u32) -> Self {
         self.line = Some(line);
         self
     }
@@ -135,8 +165,8 @@ impl<'a> Annotation<'a> {
     /// Sets the annotation's link.
     ///
     /// The link is the location of the annotation in an external tool.
-    pub fn link(&'a mut self, link: &'a str) -> &'a mut Self {
-        self.link = Some(link);
+    pub fn link<T: Into<String>>(mut self, link: T) -> Self {
+        self.link = Some(link.into());
         self
     }
 
@@ -146,25 +176,37 @@ impl<'a> Annotation<'a> {
     /// annotation, then an ID must be provided. It is not used or required by
     /// Bitbucket, but only by the annotation creator for updating or deleting
     /// this specific annotation.
-    pub fn external_id(&'a mut self, external_id: &'a str) -> &'a mut Self {
-        self.external_id = Some(external_id);
+    pub fn external_id<T: Into<String>>(mut self, external_id: T) -> Self {
+        self.external_id = Some(external_id.into());
         self
     }
 
-    /// Serializes the annotation to a JSON `String`.
-    pub fn to_string(&'a self) -> Result<String> {
+    pub fn build(self) -> Result<Annotation> {
         self.validate_fields()?;
-        serde_json::to_string(self).map_err(Error::SerdeError)
-    }
 
-    /// Serializes the annotation to a `serde_json::Value`.
-    pub fn to_value(&'a self) -> Result<Value> {
-        self.validate_fields()?;
-        serde_json::to_value(self).map_err(Error::SerdeError)
+        let AnnotationBuilder {
+            message,
+            severity,
+            annotation_type,
+            path,
+            line,
+            link,
+            external_id,
+        } = self;
+
+        Ok(Annotation {
+            message,
+            severity,
+            annotation_type,
+            path,
+            line,
+            link,
+            external_id,
+        })
     }
 
     /// Validates fields that have limits imposed on them by Bitbucket.
-    fn validate_fields(&'a self) -> Result<()> {
+    fn validate_fields(&self) -> Result<()> {
         validate_field!(self, message, MESSAGE_LIMIT);
         validate_optional_field!(self, external_id, EXTERNAL_ID_LIMIT);
         Ok(())
@@ -178,17 +220,17 @@ mod field_validataion {
     #[test]
     fn message() {
         let invalid_message = "X".repeat(MESSAGE_LIMIT + 1);
-        assert!(Annotation::new(&invalid_message, Severity::Low)
-            .to_value()
+        assert!(AnnotationBuilder::new(invalid_message, Severity::Low)
+            .build()
             .is_err());
     }
 
     #[test]
     fn external_id() {
         let invalid_external_id = "X".repeat(EXTERNAL_ID_LIMIT + 1);
-        assert!(Annotation::new("Message", Severity::Low)
-            .external_id(&invalid_external_id)
-            .to_value()
+        assert!(AnnotationBuilder::new("Message", Severity::Low)
+            .external_id(invalid_external_id)
+            .build()
             .is_err());
     }
 }

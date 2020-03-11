@@ -15,7 +15,7 @@ mod validation {
 
     macro_rules! validate_optional_field {
         ($self:ident, $field:ident, $limit:expr) => {
-            if let Some($field) = $self.$field {
+            if let Some(ref $field) = $self.$field {
                 let len = $field.len();
                 if len > $limit {
                     return Err(Error::FieldTooLong {
