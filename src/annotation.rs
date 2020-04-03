@@ -19,6 +19,14 @@ pub struct Annotations {
     annotations: Vec<Annotation>,
 }
 
+impl Annotations {
+    pub fn new<T: Into<Vec<Annotation>>>(annotations: T) -> Self {
+        Annotations {
+            annotations: annotations.into(),
+        }
+    }
+}
+
 /// Represents the severity of an `Annotation`.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "UPPERCASE")]
