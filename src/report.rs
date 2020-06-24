@@ -9,7 +9,7 @@ const DATA_LIMIT: usize = 6;
 const REPORTER_LIMIT: usize = 450;
 
 /// Indicates whether a `Report` is in a passed or failed state.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum ReportResult {
     Pass,
@@ -20,7 +20,7 @@ pub enum ReportResult {
 ///
 /// A data field contains information that will be displayed in the Code
 /// Insights report summary in Bitbucket Server..
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Data {
     /// A string describing what this data field represents.
     title: String,
@@ -31,7 +31,7 @@ pub struct Data {
 }
 
 /// Describes the value for a `Data` field in a `Report`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Parameter {
@@ -69,7 +69,7 @@ pub enum Parameter {
 /// of the results of the analysis and display data that is not specific to any
 /// given file. A report must be created before any annotations are able to be
 /// created as annotations must be associated with an existing report.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Report {
     /// A short string representing the name of the report.

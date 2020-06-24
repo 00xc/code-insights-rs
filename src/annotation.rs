@@ -14,7 +14,7 @@ const EXTERNAL_ID_LIMIT: usize = 450;
 ///
 /// This is the struct that should be serialized and POST:ed to Bitbucket
 /// Server's annotations endpoint.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Annotations {
     annotations: Vec<Annotation>,
 }
@@ -28,7 +28,7 @@ impl Annotations {
 }
 
 /// Represents the severity of an `Annotation`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Severity {
     Low,
@@ -37,7 +37,7 @@ pub enum Severity {
 }
 
 /// Represents the type of an `Annotation`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Type {
     Vulnerability,
@@ -55,7 +55,7 @@ pub enum Type {
 /// are on lines that have been changed in a pull request are displayed.
 /// Annotations can also be created on line 0 which will be displayed as a file
 /// level annotation on any file that has been modified.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Annotation {
     /// The message to display to users.
