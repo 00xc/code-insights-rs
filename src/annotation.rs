@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::{Error, Result};
+use crate::validation::{validate_field, validate_optional_field};
 
 const MESSAGE_LIMIT: usize = 2000;
 const EXTERNAL_ID_LIMIT: usize = 450;

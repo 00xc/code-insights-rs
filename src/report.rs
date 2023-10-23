@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 
 use crate::error::{Error, Result};
+use crate::validation::{validate_field, validate_optional_field};
 
 const TITLE_LIMIT: usize = 450;
 const DETAILS_LIMIT: usize = 2000;
