@@ -98,23 +98,29 @@ pub struct Annotation {
 }
 
 impl Annotation {
-    /// Serializes the annotation to a JSON `String`.
-    pub fn to_string(&self) -> Result<String> {
-        self.validate_fields()?;
-        serde_json::to_string(self).map_err(Error::SerdeError)
-    }
-
-    /// Serializes the annotation to a `serde_json::Value`.
-    pub fn to_value(&self) -> Result<Value> {
-        self.validate_fields()?;
-        serde_json::to_value(self).map_err(Error::SerdeError)
-    }
-
     /// Validates fields that have limits imposed on them by Bitbucket.
     fn validate_fields(&self) -> Result<()> {
         validate_field!(self, message, MESSAGE_LIMIT);
         validate_optional_field!(self, external_id, EXTERNAL_ID_LIMIT);
         Ok(())
+    }
+}
+
+impl TryFrom<Annotation> for String {
+    type Error = Error;
+
+    fn try_from(value: Annotation) -> std::result::Result<Self, Self::Error> {
+        value.validate_fields()?;
+        serde_json::to_string(&value).map_err(Error::SerdeError)
+    }
+}
+
+impl TryFrom<Annotation> for Value {
+    type Error = Error;
+
+    fn try_from(value: Annotation) -> std::result::Result<Self, Self::Error> {
+        value.validate_fields()?;
+        serde_json::to_value(value).map_err(Error::SerdeError)
     }
 }
 
