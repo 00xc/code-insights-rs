@@ -1,5 +1,7 @@
 name: CI
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
 jobs:
   test:
@@ -7,7 +9,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [stable, beta, nightly]
+        build:
+          - stable
+          - beta
+          - nightly
         include:
           - build: stable
             os: ubuntu-latest
