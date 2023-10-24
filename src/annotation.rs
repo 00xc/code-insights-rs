@@ -196,6 +196,12 @@ impl AnnotationBuilder {
         self
     }
 
+    /// Create the annotation
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `message` or `external_id` are longer than the
+    /// Bitbucket API allows.
     pub fn build(self) -> Result<Annotation> {
         self.validate_fields()?;
 

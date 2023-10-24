@@ -235,6 +235,12 @@ impl ReportBuilder {
         self
     }
 
+    /// Create the report
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `title`, `details`, `reporter` or `data` are
+    /// longer than the Bitbucket API allows.
     pub fn build(self) -> Result<Report> {
         self.validate_fields()?;
         let ReportBuilder {
