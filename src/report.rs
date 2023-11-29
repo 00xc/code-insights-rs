@@ -24,11 +24,11 @@ pub enum ReportResult {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Data {
     /// A string describing what this data field represents.
-    title: String,
+    pub title: String,
 
     /// The value of the data field.
     #[serde(flatten)]
-    parameter: Parameter,
+    pub parameter: Parameter,
 }
 
 /// Describes the value for a `Data` field in a `Report`.

@@ -1,6 +1,6 @@
 [package]
 name = "code_insights"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Fredrik Larsson <nossralf@gmail.com>"]
 description = "Types for Bitbucket Code Insights"
 categories = ["development-tools"]
