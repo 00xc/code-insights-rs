@@ -4,10 +4,17 @@ use serde_json::{Number, Value};
 use crate::error::{Error, Result};
 use crate::validation::{validate_field, validate_optional_field};
 
-const TITLE_LIMIT: usize = 450;
-const DETAILS_LIMIT: usize = 2000;
-const DATA_LIMIT: usize = 6;
-const REPORTER_LIMIT: usize = 450;
+/// Maximum length of a report title.
+pub const TITLE_LIMIT: usize = 450;
+
+/// Maximum length of a report's details.
+pub const DETAILS_LIMIT: usize = 2000;
+
+/// Maximum number of data fields.
+pub const DATA_LIMIT: usize = 6;
+
+/// Maximum length of a reporter.
+pub const REPORTER_LIMIT: usize = 450;
 
 /// Indicates whether a `Report` is in a passed or failed state.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -178,8 +185,8 @@ impl ReportBuilder {
     /// It may contain escaped newlines and if it does, Bitbucket will display
     /// the content accordingly.
     ///
-    /// The maximum length of `details` is 2000 characters. This is a Bitbucket
-    /// limitation.
+    /// The maximum length of `details` is given by [`DETAILS_LIMIT`]. This is
+    /// a Bitbucket limitation.
     pub fn details<T: Into<String>>(mut self, details: T) -> Self {
         self.details = Some(details.into());
         self
@@ -198,8 +205,8 @@ impl ReportBuilder {
     /// Examples of data fields may be code coverage percentage or the number
     /// of linter errors.
     ///
-    /// A maximum of 6 `data` fields are allowed. This is a Bitbucket
-    /// limitation.
+    /// A maximum of [`DATA_LIMIT`] `data` fields are allowed. This is a
+    /// Bitbucket limitation.
     pub fn data(mut self, data: Vec<Data>) -> Self {
         self.data = Some(data);
         self
@@ -210,8 +217,8 @@ impl ReportBuilder {
     /// The reporter describes the tool or company which created the Code
     /// Insights report.
     ///
-    /// The maximum length of `reporter` is 450 characters. This is a Bitbucket
-    /// limitation.
+    /// The maximum length of `reporter` is [`REPORTER_LIMIT`]. This is a
+    /// Bitbucket limitation.
     pub fn reporter<T: Into<String>>(mut self, reporter: T) -> Self {
         self.reporter = Some(reporter.into());
         self
@@ -240,7 +247,8 @@ impl ReportBuilder {
     /// # Errors
     ///
     /// Will return `Err` if `title`, `details`, `reporter` or `data` are
-    /// longer than the Bitbucket API allows.
+    /// longer than the Bitbucket API allows. See [`TITLE_LIMIT`],
+    /// [`DETAILS_LIMIT`], [`REPORTER_LIMIT`] and [`DATA_LIMIT`].
     pub fn build(self) -> Result<Report> {
         self.validate_fields()?;
         let ReportBuilder {

@@ -4,8 +4,11 @@ use serde_json::Value;
 use crate::error::{Error, Result};
 use crate::validation::{validate_field, validate_optional_field};
 
-const MESSAGE_LIMIT: usize = 2000;
-const EXTERNAL_ID_LIMIT: usize = 450;
+/// Maximum length of an annotation message.
+pub const MESSAGE_LIMIT: usize = 2000;
+
+/// Maximum length of an external identifier.
+pub const EXTERNAL_ID_LIMIT: usize = 450;
 
 /// Holds all annotations that apply to a Code Insights report.
 ///
@@ -137,8 +140,8 @@ pub struct AnnotationBuilder {
 impl AnnotationBuilder {
     /// Constructs a new Code Insights `Annotation` with a message and severity.
     ///
-    /// The maximum length of `message` is 2000 characters. This is a Bitbucket
-    /// limitation.
+    /// The maximum length of `message` is given by [`MESSAGE_LIMIT`]. This is a
+    /// Bitbucket limitation.
     pub fn new<T: Into<String>>(message: T, severity: Severity) -> Self {
         AnnotationBuilder {
             message: message.into(),
@@ -201,7 +204,8 @@ impl AnnotationBuilder {
     /// # Errors
     ///
     /// Will return `Err` if `message` or `external_id` are longer than the
-    /// Bitbucket API allows.
+    /// Bitbucket API allows, i.e. longer than [`MESSAGE_LIMIT`] and
+    /// [`EXTERNAL_ID_LIMIT`].
     pub fn build(self) -> Result<Annotation> {
         self.validate_fields()?;
 
