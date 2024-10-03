@@ -71,6 +71,15 @@ pub enum Parameter {
     Text(String),
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum ReportType {
+    Security,
+    Coverage,
+    Test,
+    Bug,
+}
+
 /// Represents a Bitbucket Server Code Insights report.
 ///
 /// Reports enable Bitbucket Server integrations to give a high-level overview
@@ -110,6 +119,9 @@ pub struct Report {
     /// logo will be used.
     #[serde(skip_serializing_if = "Option::is_none")]
     logo_url: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    report_type: Option<ReportType>,
 }
 
 impl Report {
@@ -159,6 +171,7 @@ pub struct ReportBuilder {
     reporter: Option<String>,
     link: Option<String>,
     logo_url: Option<String>,
+    report_type: Option<ReportType>,
 }
 
 impl ReportBuilder {
@@ -176,6 +189,7 @@ impl ReportBuilder {
             reporter: None,
             link: None,
             logo_url: None,
+            report_type: None,
         }
     }
 
@@ -242,6 +256,11 @@ impl ReportBuilder {
         self
     }
 
+    pub fn report_type(mut self, report_type: ReportType) -> Self {
+        self.report_type = Some(report_type);
+        self
+    }
+
     /// Create the report
     ///
     /// # Errors
@@ -259,6 +278,7 @@ impl ReportBuilder {
             reporter,
             link,
             logo_url,
+            report_type,
         } = self;
 
         Ok(Report {
@@ -269,6 +289,7 @@ impl ReportBuilder {
             reporter,
             link,
             logo_url,
+            report_type,
         })
     }
 
