@@ -87,7 +87,6 @@ pub enum ReportType {
 /// given file. A report must be created before any annotations are able to be
 /// created as annotations must be associated with an existing report.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-#[serde(rename_all = "camelCase")]
 pub struct Report {
     /// A short string representing the name of the report.
     title: String,
