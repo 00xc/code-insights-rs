@@ -70,7 +70,6 @@ pub struct Annotation {
 
     /// The type of annotation posted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "type")]
     annotation_type: Option<Type>,
 
     /// The path of the file on which this annotation should be placed. This is
