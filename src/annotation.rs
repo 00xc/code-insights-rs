@@ -4,7 +4,7 @@ use serde_json::Value;
 use crate::error::{Error, Result};
 use crate::validation::{validate_field, validate_optional_field};
 
-/// Maximum length of an annotation message.
+/// Maximum length of an annotation summary.
 pub const MESSAGE_LIMIT: usize = 2000;
 
 /// Maximum length of an external identifier.
@@ -63,7 +63,7 @@ pub enum Type {
 #[serde(rename_all = "camelCase")]
 pub struct Annotation {
     /// The message to display to users.
-    message: String,
+    summary: String,
 
     /// The severity of the annotation.
     severity: Severity,
@@ -103,7 +103,7 @@ pub struct Annotation {
 impl Annotation {
     /// Validates fields that have limits imposed on them by Bitbucket.
     fn validate_fields(&self) -> Result<()> {
-        validate_field!(self, message, MESSAGE_LIMIT);
+        validate_field!(self, summary, MESSAGE_LIMIT);
         validate_optional_field!(self, external_id, EXTERNAL_ID_LIMIT);
         Ok(())
     }
@@ -128,7 +128,7 @@ impl TryFrom<Annotation> for Value {
 }
 
 pub struct AnnotationBuilder {
-    message: String,
+    summary: String,
     severity: Severity,
     annotation_type: Option<Type>,
     path: Option<String>,
@@ -138,13 +138,13 @@ pub struct AnnotationBuilder {
 }
 
 impl AnnotationBuilder {
-    /// Constructs a new Code Insights `Annotation` with a message and severity.
+    /// Constructs a new Code Insights `Annotation` with a summary and severity.
     ///
     /// The maximum length of `message` is given by [`MESSAGE_LIMIT`]. This is a
     /// Bitbucket limitation.
-    pub fn new<T: Into<String>>(message: T, severity: Severity) -> Self {
+    pub fn new<T: Into<String>>(summary: T, severity: Severity) -> Self {
         AnnotationBuilder {
-            message: message.into(),
+            summary: summary.into(),
             severity,
             annotation_type: None,
             path: None,
@@ -210,7 +210,7 @@ impl AnnotationBuilder {
         self.validate_fields()?;
 
         let AnnotationBuilder {
-            message,
+            summary,
             severity,
             annotation_type,
             path,
@@ -220,7 +220,7 @@ impl AnnotationBuilder {
         } = self;
 
         Ok(Annotation {
-            message,
+            summary,
             severity,
             annotation_type,
             path,
@@ -232,7 +232,7 @@ impl AnnotationBuilder {
 
     /// Validates fields that have limits imposed on them by Bitbucket.
     fn validate_fields(&self) -> Result<()> {
-        validate_field!(self, message, MESSAGE_LIMIT);
+        validate_field!(self, summary, MESSAGE_LIMIT);
         validate_optional_field!(self, external_id, EXTERNAL_ID_LIMIT);
         Ok(())
     }
@@ -243,9 +243,9 @@ mod field_validataion {
     use super::*;
 
     #[test]
-    fn message() {
-        let invalid_message = "X".repeat(MESSAGE_LIMIT + 1);
-        assert!(AnnotationBuilder::new(invalid_message, Severity::Low)
+    fn summary() {
+        let invalid_summary = "X".repeat(MESSAGE_LIMIT + 1);
+        assert!(AnnotationBuilder::new(invalid_summary, Severity::Low)
             .build()
             .is_err());
     }
@@ -253,7 +253,7 @@ mod field_validataion {
     #[test]
     fn external_id() {
         let invalid_external_id = "X".repeat(EXTERNAL_ID_LIMIT + 1);
-        assert!(AnnotationBuilder::new("Message", Severity::Low)
+        assert!(AnnotationBuilder::new("Summary", Severity::Low)
             .external_id(invalid_external_id)
             .build()
             .is_err());
