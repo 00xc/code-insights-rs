@@ -20,8 +20,8 @@ pub const REPORTER_LIMIT: usize = 450;
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum ReportResult {
-    Pass,
-    Fail,
+    Passed,
+    Failed,
 }
 
 /// Used to represent a data field in a `Report`.
