@@ -60,7 +60,6 @@ pub enum Type {
 /// Annotations can also be created on line 0 which will be displayed as a file
 /// level annotation on any file that has been modified.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-#[serde(rename_all = "camelCase")]
 pub struct Annotation {
     /// The message to display to users.
     summary: String,
